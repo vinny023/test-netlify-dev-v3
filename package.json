@@ -6,14 +6,23 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "netlify-dev",
-    "build": "rm -rf dist && rm -rf functions && cp -r src/functions functions && mkdir dist",    
-    "postinstall": "netlify-lambda install"
+    "build": "rm -rf dist && rm -rf functions && cp -r src/functions functions && mkdir dist",
+    "postinstall": "netlify-lambda install",
+    "debug": "netlify dev --inspect"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sendgrid/mail": "^7.4.2",
+    "algoliasearch": "^4.8.6",
     "dotenv": "^8.2.0",
     "mongodb": "^3.6.5",
     "netlify-lambda": "^2.0.3"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.13.14",
+    "@babel/core": "^7.13.14",
+    "@babel/node": "^7.13.13",
+    "@babel/preset-env": "^7.13.12"
   }
 }

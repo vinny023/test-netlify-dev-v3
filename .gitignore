@@ -3,5 +3,9 @@ node_modules
 
 #ignore development enviornment variables
 .env
+
+#ignore ngrok.exe
+ngrok
+
 # Local Netlify folder
 .netlify
