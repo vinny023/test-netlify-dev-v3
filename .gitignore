@@ -1,2 +1,7 @@
 #ignore node modules
 node_modules
+
+#ignore development enviornment variables
+.env
+# Local Netlify folder
+.netlify
