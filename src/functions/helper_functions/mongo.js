@@ -45,9 +45,13 @@ exports.pullMetadata = async(skuList, accountId, hits, sortQuery, filterQuery) =
     let metadata = client.db("Truffle").collection(accountId+'-metadata');
 
     //SORT PRICES BY ORDER OF INPUT SKU LIST OR BY SORT TERM
-    let mongoquery = [];        
+    let mongoquery = [];   
     
-    if (!filterQuery) {
+    console.log('FITLER QUERY')
+    console.log(filterQuery)
+    console.log(filterQuery.length)
+    console.log(skuList)
+    if (!filterQuery || filterQuery.length === 0) {
       mongoquery = [{$match: {sku: {$in: skuList}}}]
     } else {
       mongoquery = [{$match: {$and:[{sku: {$in: skuList}}, ...filterQuery]}}]
@@ -55,7 +59,7 @@ exports.pullMetadata = async(skuList, accountId, hits, sortQuery, filterQuery) =
 
     mongoquery.push({$addFields: {"__skuList": {$indexOfArray: [skuList, "$sku" ]}}})
 
-    if (!sortQuery) {
+    if (!sortQuery || sortQuery.length === 0) {
       mongoquery.push({$sort: {"__skuList": 1}})
     } else {
       // field = sortQuery.field
@@ -66,11 +70,12 @@ exports.pullMetadata = async(skuList, accountId, hits, sortQuery, filterQuery) =
       mongoquery.push({$sort: {...sortQuery, "__skuList":1}})
     }
 
-    console.log(mongoquery)
-
     const metadataCont = await metadata.aggregate(mongoquery).toArray()
+    console.log('METADATA')
+    console.log(metadataCont.length === 0 ? metadataCont : metadataCont[0])
     client.close()
 
+    // console.log(metadataCont)
     //ADD IN ORIGINAL PRODUCT DATA TO SORTED LIST AND REMOVE FROM ORIGINAL HITS
      combinedData = metadataCont.map(meta => {
       const product = hits[meta.__skuList]
