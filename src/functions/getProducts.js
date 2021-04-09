@@ -79,8 +79,8 @@ exports.handler = async(event, context) => {
 
 const createFilterAndSort = (filterInput, sortInput) => {
 
-    const algoliaFilterFields = ['supplierId', 'qtyPerItem', 'size', 'units', 'displayName']
-    const mongoFilterFields = ['price', 'orderHistory']
+    const algoliaFilterFields = ['supplierId', 'qtyPerItem', 'size', 'units', 'displayName', 'sku']
+    const mongoFilterFields = ['price', 'orderHistory', 'sku']
         
     let algoliaFilter = '';
     let mongoFilter = [];
