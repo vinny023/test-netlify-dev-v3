@@ -1,5 +1,5 @@
 const algoliasearch = require('algoliasearch');
-const mongo = require ('../helper_functions/mongo.js')
+const mongo = require('./helper_functions/mongo.js')
 
 const algolia_client = algoliasearch(process.env.ALGOLIA_APP_NAME, process.env.ALGOLIA_API_KEY);
 const index = algolia_client.initIndex(process.env.ALGOLIA_PRODUCTS_INDEX);

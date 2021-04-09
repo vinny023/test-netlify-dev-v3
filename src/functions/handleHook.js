@@ -1,4 +1,4 @@
-const mongo = require ('../helper_functions/mongo.js')
+const mongo = require ('./helper_functions/mongo.js')
 
 exports.handler = async(event, context) => {
 

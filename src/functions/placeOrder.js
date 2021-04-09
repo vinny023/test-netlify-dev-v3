@@ -1,6 +1,6 @@
-const mongo = require ('../helper_functions/mongo.js')
-const createOrderEmail = require ('../helper_functions/createOrderEmail.js')
-const sendgrid = require ('../helper_functions/sendgrid.js')
+const mongo = require ('./helper_functions/mongo.js')
+const createOrderEmail = require ('./helper_functions/createOrderEmail.js')
+const sendgrid = require ('./helper_functions/sendgrid.js')
 
 exports.handler = async(events, context) => {
 
