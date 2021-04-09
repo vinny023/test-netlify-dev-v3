@@ -71,19 +71,30 @@ exports.pullMetadata = async(skuList, accountId, hits, sortQuery, filterQuery) =
     }
 
     const metadataCont = await metadata.aggregate(mongoquery).toArray()
-    console.log('METADATA')
-    console.log(metadataCont.length === 0 ? metadataCont : metadataCont[0])
+   
     client.close()
 
     // console.log(metadataCont)
-    //ADD IN ORIGINAL PRODUCT DATA TO SORTED LIST AND REMOVE FROM ORIGINAL HITS
-     combinedData = metadataCont.map(meta => {
+
+    //ADD IN ORIGINAL PRODUCT DATA TO SORTED METADATA AND REMOVE FROM ORIGINAL HITS TO LATER APPEND ONLY PROD-DATA THAT DOESN'T HAVE ASSOCIATE METADATA        
+    combinedData = metadataCont.map(meta => {
+      //PULL PRODUCT DATA
       const product = hits[meta.__skuList]
-      hits.splice(meta.__skuList, 1)
+      //REPLACE PRODUCT WITH 0 FOR FILTERING LATER
+      hits.splice(meta.__skuList, 1, 0)
       return {...meta, ...product}
      } )
 
-    //APPEND REMAINDER OF HITS WITHOUT METADATA TO THE BOTTOM OF THE LIST?
+    //REOMVE 0 ENTRIES FROM HITS TO ONLY HAVE HITS THAT DON'T HAVE METADATA
+     hits = hits.filter(entry => entry !== 0)
+
+     console.log('METADATA')
+     console.log(combinedData)
+     console.log('HITS')
+     console.log(hits)
+
+
+    //APPEND REMAINDER OF HITS WITHOUT METADATA TO THE BOTTOM OF THE LIST
     return {'metadata':[...combinedData, ...hits]}
   }
   catch (err) {
