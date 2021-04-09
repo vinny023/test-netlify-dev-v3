@@ -39,6 +39,8 @@ exports.handler = async(event, context) => {
        
         //CHECK ALGOLIA FILTER, MONGOFILTER and MONGOSORT
         filterAndSort = createFilterAndSort(filterQuery, sortQuery)
+
+        console.log(filterAndSort.algoliaFilter)
         
         const startTime = new Date();
 
@@ -48,7 +50,8 @@ exports.handler = async(event, context) => {
 
         //CREATE METADATA QUERY ARRAY
         const skuList = hits.map(hit => hit.sku)
-        
+        console.log(skuList)
+        console.log(filterAndSort.mongoFilter)
         //PULL METADATA
 
         //monogSort = {orderHistory: -1, price: 1}
@@ -60,7 +63,7 @@ exports.handler = async(event, context) => {
         console.log('AlgoliaTime:'+(AlgoliaTime-startTime))
         console.log('MongoTime:'+(MongoTime-AlgoliaTime))
         console.log('TotalTime:'+(MongoTime-startTime))  
-        if (metadata) {           
+        if (metadata) {        
             
             return {
                 statusCode: 200,
@@ -69,18 +72,18 @@ exports.handler = async(event, context) => {
                 body: JSON.stringify({'products': metadata, 'nbPages': nbPages} )
             }       
         } else if (error) {
-            return {statusCode: 500, body: 'MONGO CALL ERROR -'&JSON.stringify(error)}
+            return {statusCode: 500, headers, body: 'MONGO CALL ERROR -'&JSON.stringify(error)}
         } 
 
     } catch(error) {
-        return {statusCode: 500, body: 'ALGOLIA CALL ERROR -'&JSON.stringify(error)}
+        return {statusCode: 500, headers, body: 'ALGOLIA CALL ERROR -'&JSON.stringify(error)}
     }
 }
 
 const createFilterAndSort = (filterInput, sortInput) => {
 
     const algoliaFilterFields = ['supplierId', 'qtyPerItem', 'size', 'units', 'displayName', 'sku']
-    const mongoFilterFields = ['price', 'orderHistory', 'sku']
+    const mongoFilterFields = ['price', 'orderHistory']
         
     let algoliaFilter = '';
     let mongoFilter = [];
