@@ -40,7 +40,7 @@ const testSort = [
 
 const createFilterAndSort = (filterInput, sortInput) => {
 
-    const algoliaFilterFields = ['supplierId', 'qtyPerItem', 'size', 'units', 'displayName']
+    const algoliaFilterFields = ['supplierId', 'supplierDisplayName', 'qtyPerItem', 'size', 'units', 'displayName']
     const mongoFilterFields = ['price', 'orderHistory']
         
     let algoliaFilter = '';

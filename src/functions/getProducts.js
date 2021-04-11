@@ -82,7 +82,7 @@ exports.handler = async(event, context) => {
 
 const createFilterAndSort = (filterInput, sortInput) => {
 
-    const algoliaFilterFields = ['supplierId', 'qtyPerItem', 'size', 'units', 'displayName', 'sku']
+    const algoliaFilterFields = ['supplierId', 'supplierDisplayName','qtyPerItem', 'size', 'units', 'displayName', 'sku']
     const mongoFilterFields = ['price', 'orderHistory']
         
     let algoliaFilter = '';
@@ -108,6 +108,7 @@ const createFilterAndSort = (filterInput, sortInput) => {
                     newCompare[filter.comparison] = filter.values
                 }
                 newFilter[filter.field] = newCompare
+                
                 mongoFilter.push(newFilter)
                 return mongoFilter
         }, [])
