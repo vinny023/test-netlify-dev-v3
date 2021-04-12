@@ -3,6 +3,33 @@ const mongo_uri = process.env.MONGO_CLIENT_URI || 'mongodb+srv://truffle_client:
 console.log(mongo_uri)
 
 
+exports.suppliers = async(action, payload) => {
+  const client = new MongoClient(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+  await client.connect()
+  let supplierDb = client.db("Truffle").collection('Suppliers');
+  
+
+  switch (action) {
+    case 'getSupplier':     
+      try {
+        const {supplierList} = payload
+        const mongoquery = [{$match: {id: {$in: supplierList}}}]
+        mongoquery.push({$addFields: {"__originalOrder": {$indexOfArray: [supplierList, "$id" ]}}})
+        mongoquery.push({$sort: {"__originalOrder": 1}})      
+        const suppliers = await supplierDb.aggregate(mongoquery).toArray()
+        client.close()
+        return suppliers
+        
+      }
+      catch (error) {
+        client.close()
+        return {'error':error}
+      }
+  }
+}
+
+
 exports.orders = async(action,payload) => {
     //check if order already exists?
    
