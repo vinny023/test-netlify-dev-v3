@@ -4,13 +4,17 @@ exports.createOrderEmailParams = ({ accountDisplayName,
                                     supplierContact, 
                                     accountConfirmationEmail,
                                     supplierDisplayName,
-                                    id}) => {
+                                    id,
+                                    selectedDeliveryDate,
+                                    selectedTimeSlot}) => {
 
-        try {
-         
+        try {          
+            
             //CREATE ORDER STRING
             var orderstring = `<h2>Order From `+accountDisplayName+`</h2>
             <table style="border-collapse: collapse; width: 100%;">
+           
+            <h3>Delivery Location: $</h3>
             <tr>
             <th style=" text-align: left; padding: 8px;">Item Number</th>
             <th style=" text-align: left; padding: 8px;">Quantity</th>
