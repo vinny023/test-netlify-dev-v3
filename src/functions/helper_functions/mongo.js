@@ -11,8 +11,7 @@ exports.suppliers = async(action, payload) => {
   
   try {
   switch (action) {
-    case 'getSuppliers':     
- 
+    case 'getCartSuppliers':      
         const {supplierList} = payload
         const mongoquery = [{$match: {id: {$in: supplierList}}}]
         mongoquery.push({$addFields: {"__originalOrder": {$indexOfArray: [supplierList, "$id" ]}}})
@@ -41,8 +40,12 @@ exports.orders = async(action,payload) => {
         let orders = client.db("Truffle").collection('Orders');
 
         switch (action) {            
-            case 'getOrder':
-              return await orders.find({"id":payload.orderId})  
+            case 'setOrder' :
+              const response = await orders.updateOne({id: payload.id}, {"$set": payload.update})                 
+              return (response.result.n === 1) ? response : {error: {stack: response}}
+              
+            case 'getOrder':              
+              return await orders.find(payload.query).sort(payload.sort).toArray()  
             case 'saveNewOrder':
                 const insertRes = await orders.insertOne(payload.order)
                 // if (payload.close) { client.close() }
@@ -60,7 +63,10 @@ exports.orders = async(action,payload) => {
         client.close()
     }
     catch (error) {
-      client.close()
+      // if (client) {
+      //   client.close()
+      // }
+      console.log(error)
       return {error:error}
     }
 }
