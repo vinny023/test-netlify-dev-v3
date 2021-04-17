@@ -11,14 +11,14 @@ mongoquery.push({$addFields: {"__skuList": {$indexOfArray: [skuList, "$sku" ]}}}
 
 const client = new MongoClient(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
 client.connect().then(() => {
-  return client.db("Truffle").collection('arvindsdeli-metadata');
-}).then(metadata => {
-  metadata.aggregate(mongoquery).toArray().then(output => {
+  return client.db("Truffle").collection('Orders');
+}).then(orders => {
+  orders.find({'id':'aaa'}).then(output => {
     console.log(output)
   }).then(() => {
     client.close()
   })
-})
+}).catch(err => console.log(err))
 
 
 

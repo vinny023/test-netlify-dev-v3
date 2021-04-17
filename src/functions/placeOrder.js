@@ -59,7 +59,11 @@ exports.handler = async(events, context) => {
 
     }
     catch(error) {
-        return {statusCode: 500, headers, body: JSON.stringify({emailSent: emailSent, error: 'Place Order Master Function Error - '+error.stack} )}
+        const statusCode = 500;
+        if (emailSent) {
+            statusCode = 200
+        }
+        return {statusCode: statusCode, headers, body: JSON.stringify({emailSent: emailSent, error: 'Place Order Master Function Error - '+error.stack} )}
     }
 
 

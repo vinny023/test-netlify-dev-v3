@@ -9,7 +9,7 @@ const headers = {
 exports.handler = async(event, context) => {
 
     try {        
-        const suppliers = await mongo.suppliers('getSuppliers', {supplierList: JSON.parse(event.queryStringParameters.suppliers)})
+        const suppliers = await mongo.suppliers('getCartSuppliers', {supplierList: JSON.parse(event.queryStringParameters.suppliers)})
         return {statusCode: 200, headers, body: JSON.stringify(suppliers)}
     }
     catch(error) {
