@@ -29,6 +29,26 @@ exports.suppliers = async(action, payload) => {
   }
 }
 
+exports.accounts = async(action, payload) => {
+  try {
+    const client = new MongoClient(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+      await client.connect()
+      let accounts = client.db("Truffle").collection('Accounts');
+
+      switch (action) {            
+        case 'getAccount':
+          return await accounts.find(payload.query).toArray()  
+      }
+      client.close()
+
+    } catch(error) {
+      console.log(error)
+      return {error:error}
+    }
+        
+}
+
 
 exports.orders = async(action,payload) => {
     //check if order already exists?
