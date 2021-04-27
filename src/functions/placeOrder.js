@@ -31,26 +31,35 @@ exports.handler = async(events, context) => {
             return {statusCode: 500, headers, body: JSON.stringify({orderSaved: false, error: 'Save Unqueued Order Error - '+saveOrderRes.error.stack})}
         }
 
+        console.log("Save Order Response")
+        console.log(saveOrderRes)
+
         orderSaved = true;
 
         //CREATE ORDER EMAIL (BODY, SENDER, RECIPIENT)
         const orderEmail = createOrderEmail.createOrderEmailParams(supplierOrder)
         if(orderEmail.error) {
-            return {statusCode: 200, headers,body: JSON.stringify({orderSaved: true, orderSaved: false, error: 'Order Email Creation Error - '+orderEmail.error.stack}) }
+            return {statusCode: 200, headers,body: JSON.stringify({orderSaved: true, error: 'Order Email Creation Error - '+orderEmail.error.stack}) }
         }
 
+        console.log("Order Email")
+        console.log(orderEmail)        
+
          //SEND EMAIL VIA SENDGRID & HANDLE ERROR IF NOT 202 RESPONSE
-         const sgQueueConfirm = await sendgrid.sendEmail(orderEmail)
+         const sgQueueConfirm = await sendgrid.sendEmail(orderEmail)        
+        
          if (sgQueueConfirm.error) {            
-            return {statusCode: 200, headers, body: JSON.stringify({orderSaved: false, error: 'Order Email Queuing Error - '+sgQueueConfirm.error.stack} )}         
+            return {statusCode: 200, headers, body: JSON.stringify({orderSaved: true, error: 'Order Email Queuing Error - '+sgQueueConfirm.error.stack} )}         
         }
         
+        console.log("Send Grid Response")
+        console.log(sgQueueConfirm)
         
 
         //CHANGE ORDER STATUS TO QUEUED
         const orderUpdateRes = await mongo.orders('updateOrder', {filter: {id:supplierOrder.id}, update: {status: 'Queued'}, close:true})
         if (orderUpdateRes.error) {
-            return {statusCode: 200, headers, body: JSON.stringify({orderSaved:false, error: 'Update Order To Queued Error - '+orderUpdateRes.error.stack} )}
+            return {statusCode: 200, headers, body: JSON.stringify({orderSaved:true, error: 'Update Order To Queued Error - '+orderUpdateRes.error.stack} )}
         }
 
         return {
