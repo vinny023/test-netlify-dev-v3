@@ -9,3 +9,6 @@ ngrok
 
 # Local Netlify folder
 .netlify
+
+#ignore sendGrid
+/src/local_functions/sendgrid.js
