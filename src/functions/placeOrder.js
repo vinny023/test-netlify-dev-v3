@@ -28,7 +28,7 @@ exports.handler = async(events, context) => {
         supplierOrder.status = 'Unqueued';
         const saveOrderRes = await mongo.orders('saveNewOrder', {order: supplierOrder})
         if (saveOrderRes.error) {
-            return {statusCode: 500, headers, body: JSON.stringify({orderSaved: false, error: 'Save Unqueued Order Error - '+saveOrderRes.error.stack})}
+            return {statusCode: 500, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSaved: false, error: 'Save Unqueued Order Error - '+saveOrderRes.error.stack})}
         }
 
         console.log("Save Order Response")
@@ -39,7 +39,7 @@ exports.handler = async(events, context) => {
         //CREATE ORDER EMAIL (BODY, SENDER, RECIPIENT)
         const orderEmail = createOrderEmail.createOrderEmailParams(supplierOrder)
         if(orderEmail.error) {
-            return {statusCode: 200, headers,body: JSON.stringify({orderSaved: true, error: 'Order Email Creation Error - '+orderEmail.error.stack}) }
+            return {statusCode: 200, headers,body: JSON.stringify({orderId: supplierOrder.id, orderSaved: true, error: 'Order Email Creation Error - '+orderEmail.error.stack}) }
         }
 
         console.log("Order Email")
@@ -49,7 +49,7 @@ exports.handler = async(events, context) => {
          const sgQueueConfirm = await sendgrid.sendEmail(orderEmail)        
         
          if (sgQueueConfirm.error) {            
-            return {statusCode: 200, headers, body: JSON.stringify({orderSaved: true, error: 'Order Email Queuing Error - '+sgQueueConfirm.error.stack} )}         
+            return {statusCode: 200, headers, body: JSON.stringify({orderId: supplierOrder.id, orderSaved: true, error: 'Order Email Queuing Error - '+sgQueueConfirm.error.stack} )}         
         }
         
         console.log("Send Grid Response")
@@ -59,13 +59,13 @@ exports.handler = async(events, context) => {
         //CHANGE ORDER STATUS TO QUEUED
         const orderUpdateRes = await mongo.orders('updateOrder', {filter: {id:supplierOrder.id}, update: {status: 'Queued'}, close:true})
         if (orderUpdateRes.error) {
-            return {statusCode: 200, headers, body: JSON.stringify({orderSaved:true, error: 'Update Order To Queued Error - '+orderUpdateRes.error.stack} )}
+            return {statusCode: 200, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSaved:true, error: 'Update Order To Queued Error - '+orderUpdateRes.error.stack} )}
         }
 
         return {
             statusCode:200,
             headers,
-            body: JSON.stringify({orderSaved: true, response: orderUpdateRes})
+            body: JSON.stringify({orderId: supplierOrder.id,orderSaved: true, response: orderUpdateRes})
         }
 
     }
@@ -74,7 +74,7 @@ exports.handler = async(events, context) => {
         if (orderSaved) {
             statusCode = 200
         }
-        return {statusCode: statusCode, headers, body: JSON.stringify({orderSaved: orderSaved, error: 'Place Order Master Function Error - '+error.stack} )}
+        return {statusCode: statusCode, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSaved: orderSaved, error: 'Place Order Master Function Error - '+error.stack} )}
     }
 
 
