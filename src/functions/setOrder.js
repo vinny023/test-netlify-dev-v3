@@ -1,4 +1,5 @@
 const mongo = require('./helper_functions/mongo')
+const sentry = require('./helper_functions/sentry')
 
 const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -7,6 +8,8 @@ const headers = {
   };
 
 exports.handler = async(event, context) => {
+
+    const Sentry = await sentry.initSentry()
 
     try {    
         console.log(event.queryStringParameters.id)
@@ -20,6 +23,9 @@ exports.handler = async(event, context) => {
         return {statusCode: 200, headers, body: JSON.stringify({response: response})}
     }
     catch(error) {
+        if (!Sentry.error) {
+            Sentry.captureException('Set Order Error - '+error)
+        }  
         console.log(error)
         return {statusCode: 500, headers, body: JSON.stringify({error: error})}
     }   

@@ -1,6 +1,7 @@
 const mongo = require ('./helper_functions/mongo.js')
 const createOrderEmail = require ('./helper_functions/createOrderEmail.js')
 const sendgrid = require ('./helper_functions/sendgrid.js')
+const sentry = require('./helper_functions/sentry')
 
 const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -9,10 +10,12 @@ const headers = {
   };
 
 exports.handler = async(events, context) => {
-    
-    let orderSaved = false;
 
-    try {
+    const Sentry = await sentry.initSentry()
+    
+    let orderSent = false;
+
+    try {        
         supplierOrder = JSON.parse(events.queryStringParameters.supplierOrder)
         
         //CREATE UNIQUE ID FOR THIS ORDER WITH ACCOUNTID, SUPPLIERID, ORDER DATE & HOUR, AND STRINGIFIED UNIQUE CART ID
@@ -24,22 +27,23 @@ exports.handler = async(events, context) => {
         
         //MAKE SURE ORDER DOESNT EXIST?
 
-        //SAVE ORDER TO DATABASE - STATUS = "UNQUEUED"
-        supplierOrder.status = 'Unqueued';
-        const saveOrderRes = await mongo.orders('saveNewOrder', {order: supplierOrder})
-        if (saveOrderRes.error) {
-            return {statusCode: 500, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSaved: false, error: 'Save Unqueued Order Error - '+saveOrderRes.error.stack})}
-        }
-
-        console.log("Save Order Response")
-        console.log(saveOrderRes)
-
-        orderSaved = true;
+        // //SAVE ORDER TO DATABASE - STATUS = "UNQUEUED"
+        // supplierOrder.status = 'Unqueued';
+        // const saveOrderRes = await mongo.orders('saveNewOrder', {order: supplierOrder})
+        // if (saveOrderRes.error) {
+        //     if (!Sentry.error) {
+        //         Sentry.captureException('Place Order Error - Saving Unqued Issue - '+error)
+        //     }  
+        //     return {statusCode: 500, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSaved: false, error: 'Save Unqueued Order Error - '+saveOrderRes.error.stack})}
+        // }            
 
         //CREATE ORDER EMAIL (BODY, SENDER, RECIPIENT)
         const orderEmail = createOrderEmail.createOrderEmailParams(supplierOrder)
         if(orderEmail.error) {
-            return {statusCode: 200, headers,body: JSON.stringify({orderId: supplierOrder.id, orderSaved: true, error: 'Order Email Creation Error - '+orderEmail.error.stack}) }
+            if (!Sentry.error) {
+                Sentry.captureException('Place Order Error - Create Order Email Issue - '+error)
+            }  
+            return {statusCode: 500, headers,body: JSON.stringify({orderId: supplierOrder.id, orderSent: false, error: 'Order Email Creation Error - '+orderEmail.error.stack}) }
         }
 
         console.log("Order Email")
@@ -48,33 +52,54 @@ exports.handler = async(events, context) => {
          //SEND EMAIL VIA SENDGRID & HANDLE ERROR IF NOT 202 RESPONSE
          const sgQueueConfirm = await sendgrid.sendEmail(orderEmail)        
         
-         if (sgQueueConfirm.error) {            
-            return {statusCode: 200, headers, body: JSON.stringify({orderId: supplierOrder.id, orderSaved: true, error: 'Order Email Queuing Error - '+sgQueueConfirm.error.stack} )}         
+         if (sgQueueConfirm.error) {  
+            if (!Sentry.error) {
+                Sentry.captureException('Place Order Error - SG Send Email Issue - '+error)
+            }            
+            return {statusCode: 500, headers, body: JSON.stringify({orderId: supplierOrder.id, orderSent: false, error: 'Order Email Queuing Error - '+sgQueueConfirm.error.stack} )}         
         }
         
         console.log("Send Grid Response")
         console.log(sgQueueConfirm)
+
+        orderSent= true;
+        
+        //SAVE ORDER TO DATABASE - STATUS = "QUEUED"
+        supplierOrder.status = 'Queued';
+        const saveOrderRes = await mongo.orders('saveNewOrder', {order: supplierOrder})
+        if (saveOrderRes.error) {
+            if (!Sentry.error) {
+                Sentry.captureException('Place Order Error - Saving Unqued Issue - '+error)
+            }  
+            return {statusCode: 200, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSent: true, error: 'Save Unqueued Order Error - '+saveOrderRes.error.stack})}
+        }
         
 
-        //CHANGE ORDER STATUS TO QUEUED
-        const orderUpdateRes = await mongo.orders('updateOrder', {filter: {id:supplierOrder.id}, update: {status: 'Queued'}, close:true})
-        if (orderUpdateRes.error) {
-            return {statusCode: 200, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSaved:true, error: 'Update Order To Queued Error - '+orderUpdateRes.error.stack} )}
-        }
+        // //CHANGE ORDER STATUS TO QUEUED
+        // const orderUpdateRes = await mongo.orders('updateOrder', {filter: {id:supplierOrder.id}, update: {status: 'Queued'}, close:true})
+        // if (orderUpdateRes.error) {
+        //     if (!Sentry.error) {
+        //         Sentry.captureException('Place Order Error - Save Queued Order Issue - '+error)
+        //     } 
+        //     return {statusCode: 200, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSaved:true, error: 'Update Order To Queued Error - '+orderUpdateRes.error.stack} )}
+        // }
 
         return {
             statusCode:200,
             headers,
-            body: JSON.stringify({orderId: supplierOrder.id,orderSaved: true, response: orderUpdateRes})
+            body: JSON.stringify({orderId: supplierOrder.id,orderSent: true})
         }
 
     }
     catch(error) {
-        const statusCode = 500;
-        if (orderSaved) {
+        let statusCode = 500;
+        if (orderSent) {
             statusCode = 200
         }
-        return {statusCode: statusCode, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSaved: orderSaved, error: 'Place Order Master Function Error - '+error.stack} )}
+        if (!Sentry.error) {
+            Sentry.captureException('Place Order Error - General - '+error)
+        }  
+        return {statusCode: statusCode, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSent: orderSent, error: 'Place Order Master Function Error - '+error.stack} )}
     }
 
 

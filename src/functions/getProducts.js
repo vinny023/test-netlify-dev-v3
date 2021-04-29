@@ -1,5 +1,6 @@
 const algoliasearch = require('algoliasearch');
 const mongo = require('./helper_functions/mongo.js')
+const sentry = require('./helper_functions/sentry')
 
 const algolia_client = algoliasearch(process.env.ALGOLIA_APP_NAME, process.env.ALGOLIA_API_KEY);
 const index = algolia_client.initIndex(process.env.ALGOLIA_PRODUCTS_INDEX);
@@ -12,16 +13,15 @@ const headers = {
 
 exports.handler = async(event, context) => {
 
-    try {
+    const Sentry = await sentry.initSentry()
+
+    try {        
         search = event.queryStringParameters.search
         accountId = event.queryStringParameters.accountId
         page = event.queryStringParameters.page
         sortQuery = event.queryStringParameters.sortQuery //sort query is shape {'field': field, 'direction':direction}
-        filterQuery = event.queryStringParameters.filterQuery //filter query is shape [{'field': field, 'value':[value1, value2}]
-        
-        //****HANDLE IF METADATA DOESNT EXIST...
-
-
+        filterQuery = event.queryStringParameters.filterQuery //filter query is shape [{'field': field, 'value':[value1, value2}]      
+    
         //SET DEFAULT VALUES FOR PAGE, THEY DO NOT EXIST
         if (!page) {
             page = 0
@@ -72,11 +72,17 @@ exports.handler = async(event, context) => {
                 body: JSON.stringify({'products': metadata, 'nbPages': nbPages} )
             }       
         } else if (error) {
-            return {statusCode: 500, headers, body: 'MONGO CALL ERROR -'&JSON.stringify(error)}
+            if (!Sentry.error) {
+                Sentry.captureException('Get Products - Mongo Call Error - '+error)
+            } 
+            return {statusCode: 500, headers, body: JSON.stringify({error: error})}
         } 
 
     } catch(error) {
-        return {statusCode: 500, headers, body: 'ALGOLIA CALL ERROR -'&JSON.stringify(error)}
+        if (!Sentry.error) {
+            Sentry.captureException('Get Products - Algolia Call or Function Error - '+error)
+        }         
+        return {statusCode: 500, headers, body: JSON.stringify({error: error})}
     }
 }
 

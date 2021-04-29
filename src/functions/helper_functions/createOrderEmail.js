@@ -1,3 +1,4 @@
+const sentry = require('./sentry')
 
 exports.createOrderEmailParams = ({ accountDisplayName,
                                     cart,
@@ -7,6 +8,8 @@ exports.createOrderEmailParams = ({ accountDisplayName,
                                     id,
                                     selectedDeliveryDate,
                                     selectedTimeSlot}) => {
+
+        const Sentry = sentry.initSentry()                              
 
         try {          
             
@@ -55,6 +58,9 @@ exports.createOrderEmailParams = ({ accountDisplayName,
                 }
 
         } catch (error) {
+            if (!Sentry.error) {
+                Sentry.captureException('Create Order Email Error - '+error)
+            }  
             return {
                 error: error
             }
