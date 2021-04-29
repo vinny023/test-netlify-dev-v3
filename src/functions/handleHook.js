@@ -1,10 +1,13 @@
 const mongo = require ('./helper_functions/mongo.js')
+const sentry = require('./helper_functions/sentry')
 
 exports.handler = async(event, context) => {
 
+    const Sentry = await sentry.initSentry()
+
     try {
-        const sgevents = JSON.parse(event.body)
         
+        const sgevents = JSON.parse(event.body)        
         const processed = []
         const processedEmails = []
         const delivered = []
@@ -34,6 +37,9 @@ exports.handler = async(event, context) => {
   
     } 
     catch (error) {
-        return {statusCode: 500, error: error.stack}
+        if (!Sentry.error) {
+            Sentry.captureException('Handle Hook Error - '+error)
+        }    
+        return {statusCode: 500, body: JSON.stringify({error: error})}
     }
 }

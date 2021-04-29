@@ -6,10 +6,16 @@ let sentryInitialized = false;
 
 exports.initSentry = () => {
     console.log('initializing sentry')
-    if (SENTRY_DSN) {
-        console.log('found DSN')
+    try{
+    if (SENTRY_DSN) {     
         Sentry.init({ dsn: SENTRY_DSN, tracesSampleRate: 1.0 });
         sentryInitialized = true;
-    }    
+        return Sentry
+    }   else {
+        return {error:'error'}
+    }
+    } catch(error) {
+        return {error:error}
+    }
 }
 

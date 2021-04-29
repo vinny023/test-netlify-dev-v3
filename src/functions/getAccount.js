@@ -23,20 +23,18 @@ const headers = {
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE'
   };
 
-exports.handler = async(event, context) => {
+exports.handler = async(event, context) => {      
+        
+    const Sentry = await sentry.initSentry()         
 
-    await sentry.initSentry()    
-    // setTimeout(() => null, 5000)    
-    
-    try {   
-        // throw 500         
-        // // Sentry.captureMessage('test')      
+    try {          
         const account = await mongo.accounts('getAccount', {query: JSON.parse(event.queryStringParameters.query)})    
         return {statusCode: 200, headers, body: JSON.stringify({account: account})}
     }
-    catch(error) {
-        // Sentry.captureException(error)
-        console.log(error)
+    catch(error) { 
+        if (!Sentry.error) {
+            Sentry.captureException('Get Account Error - '+error)
+        }
         return {statusCode: 500, headers, body: JSON.stringify({error: error})}
     }   
 

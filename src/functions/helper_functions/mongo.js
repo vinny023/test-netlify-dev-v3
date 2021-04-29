@@ -1,9 +1,16 @@
 const MongoClient = require('mongodb').MongoClient;
+const sentry = require('./sentry')
+
 const mongo_uri = process.env.MONGO_CLIENT_URI || 'mongodb+srv://truffle_client:qUP5La8Dj9OjIESD@cluster0.uwtbq.mongodb.net/Truffle?retryWrites=true&w=majority'
 console.log(mongo_uri)
 
 
 exports.suppliers = async(action, payload) => {
+  
+  const Sentry = await sentry.initSentry() 
+
+  try {
+
   const client = new MongoClient(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
   await client.connect()
@@ -24,12 +31,24 @@ exports.suppliers = async(action, payload) => {
       }
     }
     catch (error) {
+      if (!Sentry.error) {
+        Sentry.captureException('Mongo Suppliers Post Connection Error - '+error)
+    }  
       client.close()
       return {'error':error}
+  }
+  } catch(error) {
+    if (!Sentry.error) {
+      Sentry.captureException('Mongo Suppliers Pre Connection Error - '+error)
+  } 
+      return {error: error}
   }
 }
 
 exports.accounts = async(action, payload) => {
+
+  const Sentry = await sentry.initSentry() 
+
   try {
     const client = new MongoClient(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -44,6 +63,9 @@ exports.accounts = async(action, payload) => {
 
     } catch(error) {
       console.log(error)
+      if (!Sentry.error) {
+        Sentry.captureException('Mongo Accounts Error - '+error)
+    }  
       return {error:error}
     }
         
@@ -52,6 +74,8 @@ exports.accounts = async(action, payload) => {
 
 exports.orders = async(action,payload) => {
     //check if order already exists?
+
+    const Sentry = await sentry.initSentry() 
    
     try {
       const client = new MongoClient(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -72,9 +96,9 @@ exports.orders = async(action,payload) => {
                 return ((insertRes.insertedCount === 1) ? {success:'success'} : {error: {stack: insertRes}})
      
             case 'updateOrder':
-                const updateRes = await orders.updateOne(payload.filter, {'$set': payload.update})
+                return await orders.updateOne(payload.filter, {'$set': payload.update})
                 // if (payload.close) { client.close() }
-                return ((updateRes.modifiedCount === 1) ? {success:'success'} : {error: {stack: updateRes}})
+                // return ((updateRes.modifiedCount === 1) ? {success:'success'} : {error: {stack: updateRes}})
 
             case 'updateManyNoCheck':
                 return await orders.updateMany(payload.filter, {'$set': payload.update})
@@ -85,7 +109,10 @@ exports.orders = async(action,payload) => {
     catch (error) {
       // if (client) {
       //   client.close()
-      // }
+      // }'
+      if (!Sentry.error) {
+        Sentry.captureException('Mongo Orders Error - '+error)
+    }  
       console.log(error)
       return {error:error}
     }
@@ -94,6 +121,8 @@ exports.orders = async(action,payload) => {
 
 //PULL USER-SPECIFIC PRODUCT DATA FOR ALGOLIA PRODUCT QUERY
 exports.pullMetadata = async(skuList, accountId, hits, sortQuery, filterQuery) => {
+
+  const Sentry = await sentry.initSentry() 
   
   try {
     const client = new MongoClient(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -154,6 +183,9 @@ exports.pullMetadata = async(skuList, accountId, hits, sortQuery, filterQuery) =
     return {'metadata':[...combinedData, ...hits]}
   }
   catch (err) {
+    if (!Sentry.error) {
+      Sentry.captureException('Mongo PullMetadata Error - '+error)
+  }  
     client.close()
     return {'error':err}
   }
