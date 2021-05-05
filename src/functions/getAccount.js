@@ -1,22 +1,6 @@
 const mongo = require('./helper_functions/mongo')
 const sentry = require('./helper_functions/sentry')
 
-// const Sentry = require('@sentry/node');
-
-// const { SENTRY_DSN } = process.env;
-
-// let sentryInitialized = false;
-
-// const initSentry = async () => {
-//     console.log('initializing sentry')
-//     if (SENTRY_DSN) {        
-//         console.log('found DSN')
-//         Sentry.init({ dsn: SENTRY_DSN, tracesSampleRate: 1.0, debug: true });
-//         await Sentry.flush()
-//         sentryInitialized = true;
-//     }    
-// }
-
 const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',

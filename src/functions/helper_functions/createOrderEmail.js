@@ -4,20 +4,39 @@ exports.createOrderEmailParams = ({ accountDisplayName,
                                     cart,
                                     supplierContact, 
                                     accountConfirmationEmail,
-                                    supplierDisplayName,
+                                    supplierDetail,
                                     id,
+                                    deliveryLocation,
                                     selectedDeliveryDate,
-                                    selectedTimeSlot}) => {
+                                    selectedTimeSlot,
+                                    specialNotes
+                                    }) => {
 
-        const Sentry = sentry.initSentry()                              
+        const Sentry = sentry.initSentry()          
+        
 
-        try {          
+        try {         
+            
+            const {streetAddress, city, state, zipCode} = deliveryLocation       
+            
+            if (specialNotes === undefined) {
+                specialNotes = ''
+            }
             
             //CREATE ORDER STRING
-            var orderstring = `<h2>Order From `+accountDisplayName+`</h2>
+            var orderstring = `<h3>Order From `+accountDisplayName+`</h3>
             <table style="border-collapse: collapse; width: 100%;">
            
-            <h3>Delivery Location: $</h3>
+            <h4>Location: </h4>
+            <p>`+streetAddress+` </p>
+            <p>`+city+`, `+state+ ` `+zipCode+`</p>
+            <br>
+            <h4>Deliver At: $</h4>
+            <p>`+selectedDeliveryDate.day + `- `+
+                 selectedDeliveryDate.date+`<//p>
+            <p>`+selectedTimeSlot+`</p>
+            <br>
+            <p>`+specialNotes+`</p>
             <tr>
             <th style=" text-align: left; padding: 8px;">Item Number</th>
             <th style=" text-align: left; padding: 8px;">Quantity</th>
@@ -41,7 +60,7 @@ exports.createOrderEmailParams = ({ accountDisplayName,
                 <td style=" text-align: left; padding: 8px;">`+cart[m].supplierItemId+`</td>
                 <td style=" text-align: left; padding: 8px;">`+cart[m].quantity+`</td>
                 <td style=" text-align: left; padding: 8px;">`+cart[m].qtyPerItem+`x `+cart[m].size+` `+cart[m].units+`</td>
-                <td style=" text-align: left; padding: 8px;">`+cart[m].name+`</td>
+                <td style=" text-align: left; padding: 8px;">`+cart[m].displayName+`</td>
                 <td style=" text-align: left; padding: 8px;">$`+cart[m].price+`</td>
                 </tr>
             `
@@ -51,7 +70,7 @@ exports.createOrderEmailParams = ({ accountDisplayName,
 
         return {
                     html: orderstring, 
-                    subject: 'New Order From '+accountDisplayName+' to '+supplierDisplayName,
+                    subject: 'Order From '+accountDisplayName+' to '+supplierDetail.displayName,
                     from: process.env.ORDER_EMAIL_SENDER,
                     to: [supplierContact.contact, accountConfirmationEmail],
                     custom_args:{orderId:id}

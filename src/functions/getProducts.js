@@ -46,17 +46,24 @@ exports.handler = async(event, context) => {
 
         //SEARCH QUERY
         const {hits, nbPages} = await index.search(search, {filters:filterAndSort.algoliaFilter,page:page})
+   
+
         const AlgoliaTime = new Date();              
 
         //CREATE METADATA QUERY ARRAY
         const skuList = hits.map(hit => hit.sku)
-        console.log(skuList)
+        
+        console.log('MONGO FILTER & SORT')
         console.log(filterAndSort.mongoFilter)
+        console.log(filterAndSort.mongoSort)
         //PULL METADATA
 
         //monogSort = {orderHistory: -1, price: 1}
         //mongoFilter = [{price:{$gt: 500}}, {price:{$gt: 1970}},{supplier:{$in:["woolco, sysco"]}}]
         const {metadata,error} = await mongo.pullMetadata(skuList, accountId, hits, filterAndSort.mongoSort, filterAndSort.mongoFilter)
+
+        console.log("METADATA")
+        console.log(metadata[0])
 
         const MongoTime = new Date();
 
@@ -72,6 +79,7 @@ exports.handler = async(event, context) => {
                 body: JSON.stringify({'products': metadata, 'nbPages': nbPages} )
             }       
         } else if (error) {
+            console.log('Get Products - Mongo Call Error - '+error)
             if (!Sentry.error) {
                 Sentry.captureException('Get Products - Mongo Call Error - '+error)
             } 
@@ -79,6 +87,7 @@ exports.handler = async(event, context) => {
         } 
 
     } catch(error) {
+        console.log('Get Products - Mongo Call Error - '+error)
         if (!Sentry.error) {
             Sentry.captureException('Get Products - Algolia Call or Function Error - '+error)
         }         
@@ -88,6 +97,7 @@ exports.handler = async(event, context) => {
 
 const createFilterAndSort = (filterInput, sortInput) => {
 
+ 
     const algoliaFilterFields = ['supplierId', 'supplierDisplayName','qtyPerItem', 'size', 'units', 'displayName', 'sku']
     const mongoFilterFields = ['price', 'orderHistory']
         
@@ -122,11 +132,17 @@ const createFilterAndSort = (filterInput, sortInput) => {
     //create Mongo Sort
     //mongoSort = {orderHistory: -1, price: 1} 
 
-    if (sortInput) {
-        mongoSort = sortInput.reduce((mongoSort, sort) => {
-            mongoSort[sort.field] = sort.direction
-            return mongoSort
-        }, {})
-    } 
+
+    if (sortInput) {          
+        sortInput.forEach(sort => {     
+            mongoSort = {...mongoSort, ...sort}    
+            
+        })
+    }
+ 
+
+
+
     return {'mongoFilter':mongoFilter, 'mongoSort': mongoSort, 'algoliaFilter':algoliaFilter}
+
 }
