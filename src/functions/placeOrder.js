@@ -25,6 +25,8 @@ exports.handler = async(events, context) => {
         const uniqueDateString = date.getUTCFullYear()+'.'+date.getUTCMonth()+'.'+date.getUTCDate()+'.'+date.getUTCHours()+'.'+date.getUTCMinutes()
         supplierOrder.id = supplierOrder.accountId+'-'+supplierOrder.supplierId+'-'+uniqueDateString+'-'+JSON.stringify(uniqueCartString)
         
+        supplierOrder.id = supplierOrder.accountId + '-' + supplierOrder.supplierId +'-'+date.getTime().toString()
+
         //MAKE SURE ORDER DOESNT EXIST?
 
         // //SAVE ORDER TO DATABASE - STATUS = "UNQUEUED"
@@ -71,7 +73,7 @@ exports.handler = async(events, context) => {
             if (!Sentry.error) {
                 Sentry.captureException('Place Order Error - Saving Unqued Issue - '+error)
             }  
-            return {statusCode: 200, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSent: true, error: 'Save Unqueued Order Error - '+saveOrderRes.error.stack})}
+            return {statusCode: 200, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSent: true, error: 'Save Queued Order Error - '+saveOrderRes.error.stack})}
         }
         
 

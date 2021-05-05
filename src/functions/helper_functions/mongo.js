@@ -132,10 +132,10 @@ exports.pullMetadata = async(skuList, accountId, hits, sortQuery, filterQuery) =
     //SORT PRICES BY ORDER OF INPUT SKU LIST OR BY SORT TERM
     let mongoquery = [];   
     
-    console.log('FITLER QUERY')
-    console.log(filterQuery)
-    console.log(filterQuery.length)
-    console.log(skuList)
+    // console.log('FITLER QUERY')
+    // console.log(filterQuery)
+    // console.log(filterQuery.length)
+    // console.log(skuList)
     if (!filterQuery || filterQuery.length === 0) {
       mongoquery = [{$match: {sku: {$in: skuList}}}]
     } else {
@@ -156,7 +156,8 @@ exports.pullMetadata = async(skuList, accountId, hits, sortQuery, filterQuery) =
     }
 
     const metadataCont = await metadata.aggregate(mongoquery).toArray()
-   
+
+     
     client.close()
 
     // console.log(metadataCont)
@@ -173,20 +174,20 @@ exports.pullMetadata = async(skuList, accountId, hits, sortQuery, filterQuery) =
     //REOMVE 0 ENTRIES FROM HITS TO ONLY HAVE HITS THAT DON'T HAVE METADATA
      hits = hits.filter(entry => entry !== 0)
 
-     console.log('METADATA')
-     console.log(combinedData)
-     console.log('HITS')
-     console.log(hits)
+    //  console.log('METADATA')
+    //  console.log(combinedData)
+    //  console.log('HITS')
+    //  console.log(hits)
 
 
     //APPEND REMAINDER OF HITS WITHOUT METADATA TO THE BOTTOM OF THE LIST
     return {'metadata':[...combinedData, ...hits]}
   }
-  catch (err) {
+  catch (error) {
     if (!Sentry.error) {
       Sentry.captureException('Mongo PullMetadata Error - '+error)
-  }  
+    }  
     client.close()
-    return {'error':err}
+    return {'error':error}
   }
 }
