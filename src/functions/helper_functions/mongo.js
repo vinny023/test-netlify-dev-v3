@@ -14,7 +14,7 @@ exports.suppliers = async(action, payload) => {
   const client = new MongoClient(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
   await client.connect()
-  let supplierDb = client.db("Truffle").collection('Suppliers');
+  let supplierDb = client.db(process.env.MONGO_DB).collection('Suppliers');
   
   try {
   switch (action) {
@@ -53,7 +53,7 @@ exports.accounts = async(action, payload) => {
     const client = new MongoClient(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
       await client.connect()
-      let accounts = client.db("Truffle").collection('Accounts');
+      let accounts = client.db(process.env.MONGO_DB).collection('Accounts');
 
       switch (action) {            
         case 'getAccount':
@@ -81,7 +81,7 @@ exports.orders = async(action,payload) => {
       const client = new MongoClient(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
         await client.connect()
-        let orders = client.db("Truffle").collection('Orders');
+        let orders = client.db(process.env.MONGO_DB).collection('Orders');
 
         switch (action) {            
             case 'setOrder' :
@@ -127,7 +127,7 @@ exports.pullMetadata = async(skuList, accountId, hits, sortQuery, filterQuery) =
   try {
     const client = new MongoClient(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
     await client.connect()
-    let metadata = client.db("Truffle").collection(accountId+'-metadata');
+    let metadata = client.db(process.env.MONGO_DB).collection(accountId+'-metadata');
 
     //SORT PRICES BY ORDER OF INPUT SKU LIST OR BY SORT TERM
     let mongoquery = [];   

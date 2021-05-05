@@ -16,6 +16,8 @@ exports.createOrderEmailParams = ({ accountDisplayName,
         
 
         try {         
+
+            const confirmLink = process.env.BASE_URL+`setOrder?id=`+id+`&update=%7B%22status%22%3A%22Confirmed%22%7D`
             
             const {streetAddress, city, state, zipCode} = deliveryLocation       
             
@@ -37,6 +39,8 @@ exports.createOrderEmailParams = ({ accountDisplayName,
             <p>`+selectedTimeSlot+`</p>
             <br>
             <p>`+specialNotes+`</p>
+            <br>
+            <a href="`+confirmLink+`">Click here to confirm order</a>
             <tr>
             <th style=" text-align: left; padding: 8px;">Item Number</th>
             <th style=" text-align: left; padding: 8px;">Quantity</th>
