@@ -20,7 +20,7 @@ exports.handler = async(event, context) => {
                 case 'processed':
                     processed.push(sgevent.orderId)
                     processedEmails.push(sgevent.email)
-                case 'delievered':
+                case 'delivered':
                     delivered.push(sgevent.orderId)
                     deliveredEmails.push(sgevent.email)
                 case 'open':

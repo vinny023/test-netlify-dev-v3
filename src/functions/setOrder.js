@@ -13,14 +13,25 @@ exports.handler = async(event, context) => {
 
     try {    
         console.log(event.queryStringParameters.id)
+
+        const update = JSON.parse(event.queryStringParameters.update)
         const response = await mongo.orders('setOrder', {id: event.queryStringParameters.id,
-                                                      update: JSON.parse(event.queryStringParameters.update)})        
+                                                      update: update})        
         console.log(response)
 
         if (response.error) {
             return {statusCode: 500, headers, body: JSON.stringify({error: response.error})}    
         }
-        return {statusCode: 200, headers, body: JSON.stringify({response: response})}
+
+        //return proper message if order status is confirmed
+        try {
+            if (update.status && update.status === "Confirmed") {
+                return {statusCode: 200, headers, body: '<h1>Thanks! This order has been confirmed</h1>'}
+            } else 
+                return {statusCode: 200, headers, body: JSON.stringify({response: response})}
+            } catch (error) {
+                return {statusCode: 200, headers, body: JSON.stringify({response: response})}
+            }        
     }
     catch(error) {
         if (!Sentry.error) {
