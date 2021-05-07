@@ -2,9 +2,6 @@ const algoliasearch = require('algoliasearch');
 const mongo = require('./helper_functions/mongo.js')
 const sentry = require('./helper_functions/sentry')
 
-const algolia_client = algoliasearch(process.env.ALGOLIA_APP_NAME, process.env.ALGOLIA_API_KEY);
-const index = algolia_client.initIndex(process.env.ALGOLIA_PRODUCTS_INDEX);
-
 const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
@@ -15,7 +12,11 @@ exports.handler = async(event, context) => {
 
     const Sentry = await sentry.initSentry()
 
-    try {        
+    try {               
+        
+        const algolia_client = algoliasearch(process.env.ALGOLIA_APP_NAME, process.env.ALGOLIA_API_KEY);
+        const index = algolia_client.initIndex(process.env.ALGOLIA_PRODUCTS_INDEX);
+
         search = event.queryStringParameters.search
         accountId = event.queryStringParameters.accountId
         page = event.queryStringParameters.page
