@@ -1,34 +1,39 @@
 const algoliasearch = require('algoliasearch');
 const MongoClient = require('mongodb').MongoClient;
 
-const mongo_client_uri = "mongodb+srv://truffle_client:qUP5La8Dj9OjIESD@cluster0.uwtbq.mongodb.net/Truffle?retryWrites=true&w=majority"
+const mongo_uri = "mongodb+srv://truffle_client:qUP5La8Dj9OjIESD@cluster0.uwtbq.mongodb.net/Truffle?retryWrites=true&w=majority"
 
-const client = new MongoClient(mongo_client_uri, { useNewUrlParser: true, useUnifiedTopology: true });
+// const client = new MongoClient(mongo_client_uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-const order = async(action,payload) => {
-    //check if order already exists?
-    
+const accountMetadata = async(action, payload) => {
+ 
+    const Sentry = await sentry.initSentry() 
+  
     try {
+  
+        const client = new MongoClient(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  
         await client.connect()
-        let orders = client.db("Truffle").collection('Orders');
+        let accountMetadata = client.db(process.env.MONGO_DB).collection(payload.accountId+'-metadata');
+  
+        switch (action) {            
+            case 'markRecentlyOrdered' :
+              const cartSkus = payload.cart.map(item => item.sku)
+              console.log(cartSkus)
+              const date = new Date()
+              const response = await accountMetadata.updateMany({sku: {"$in": cartSkus}}, {'$set':{lastOrderDate:date.getTime()}})                           
+              return (response.result.n >= payload.cart.length) ? {success: 'success'} : {error: {stack: response}}
+        }
+        } catch (error) {              
+                if (!Sentry.error) {
+                  Sentry.captureException('Mongo Account Metadata Order Error - '+error)
+              }  
+            console.log('ERROR')
+                console.log(error.stack)
+                return {error:error}
+        }
+      
+  }
 
-        switch (action) {
-            case 'saveNewOrder':
-                const insertRes = await orders.insertOne(payload.order)
-                client.close()  
-                return ((insertRes.insertedCount === 1) ? {success:'success'} : {error: 'Order Not Inserted - '+JSON.stringify(insertRes)})
-     
-            case 'updateOrder':
-                const updateRes = await orders.updateOne(payload.filter, {'$set': payload.update})
-                client.close()
-                return ((updateRes.modifiedCount === 1) ? {success:'success'} : {error: 'Order Not Updated - '+JSON.stringify(updateRes)})
-        }   
-         
-    }
-    catch (error) {
-      client.close()
-      return {error:error}
-    }
-}
-
-order('updateOrder',{filter: {id:"arvindsdeli-sysco-2021.2.28.15.34-[[null,1],[null,3]]" }, update: {test: 2}}).then(val => console.log(val))
+accountMetadata('markRecentlyOrdered', {accountId: 'arvindsdeli', cart: [{sku: "woolco-653110"}]})
+  .then(output => console.log(output))
