@@ -13,10 +13,15 @@ exports.handler = async(events, context) => {
 
     const Sentry = await sentry.initSentry()
     
-    let orderSent = false;
+    let orderSent = false;        
+
+    try {
+       
+    console.log(decodeURI(events.queryStringParameters.supplierOrder.replace(/HTAG/g,"#")))
+    
+    const supplierOrder = JSON.parse(decodeURI(events.queryStringParameters.supplierOrder.replace(/HTAG/g,"#")))        
 
     try {        
-        supplierOrder = JSON.parse(events.queryStringParameters.supplierOrder)
         
         //CREATE UNIQUE ID FOR THIS ORDER WITH ACCOUNTID, SUPPLIERID, ORDER DATE & HOUR, AND STRINGIFIED UNIQUE CART ID
         const date = new Date()
@@ -65,6 +70,9 @@ exports.handler = async(events, context) => {
         console.log(sgQueueConfirm)
 
         orderSent= true;
+
+
+        mongo.accountMetadata('markRecentlyOrdered', supplierOrder)
         
         //SAVE ORDER TO DATABASE - STATUS = "QUEUED"
         supplierOrder.status = 'Queued';
@@ -101,25 +109,24 @@ exports.handler = async(events, context) => {
         if (!Sentry.error) {
             Sentry.captureException('Place Order Error - General - '+error)
         }  
-        return {statusCode: statusCode, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSent: orderSent, error: 'Place Order Master Function Error - '+error.stack} )}
+        return {statusCode: statusCode, headers, body: JSON.stringify({order: supplierOrder,orderSent: orderSent, error: 'Place Order Master Function Error - '+error.stack} )}
     }
 
-
-    //delete firebase cart
-
-
-    //handle sendgrid webhook
-        //if webhook is delivered => orderstatus = place
-
-        //if webhook is not delievered => orderstatus = not_placed
-            //notify user
-            //flag internally & try to push
-            //add back to cart?    
+}
+catch (error) {
+    if (!Sentry.error) {
+        Sentry.captureException('Place Order Error - Read Order - '+error)
+    }  
+    return {statusCode: 500, headers, body: JSON.stringify({orderSent: false, error: 'Place Order Read Order Error - '+error.stack} )}
 }
 
 
 
-//  console.log({...data.cart.cart[0], ...orderDetails})
+}
+
+
+
+
 
 
 
