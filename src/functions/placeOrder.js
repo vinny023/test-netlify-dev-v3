@@ -71,8 +71,11 @@ exports.handler = async(events, context) => {
 
         orderSent= true;
 
-
+        //update last date delivered in metadata
         mongo.accountMetadata('markRecentlyOrdered', supplierOrder)
+
+        //add skus to order guide
+        mongo.accounts('updateOrderGuide', {query: {id: supplierOrder.accountId}, skuList: supplierOrder.cart.map(item => item.sku)})
         
         //SAVE ORDER TO DATABASE - STATUS = "QUEUED"
         supplierOrder.status = 'Queued';

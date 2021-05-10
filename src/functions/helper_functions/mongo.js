@@ -57,7 +57,9 @@ exports.accounts = async(action, payload) => {
 
       switch (action) {            
         case 'getAccount':
-          return await accounts.find(payload.query).toArray()  
+          return await accounts.find(payload.query).toArray() 
+        case 'updateOrderGuide':
+          return await accounts.updateOne(payload.query, {$addToSet: { orderGuide: {$each: payload.skuList}}})
       }
       client.close()
 
