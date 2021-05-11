@@ -99,7 +99,7 @@ exports.handler = async(event, context) => {
 const createFilterAndSort = (filterInput, sortInput) => {
 
  
-    const algoliaFilterFields = ['supplierId', 'supplierDisplayName', 'qtyString','qtyPerItem', 'size', 'units', 'displayName', 'sku']
+    const algoliaFilterFields = ['supplierId', 'supplierDisplayName', 'brand', 'qtyString','qtyPerItem', 'size', 'units', 'displayName', 'sku']
     const mongoFilterFields = ['price', 'orderHistory']
         
     let algoliaFilter = '';
@@ -111,7 +111,7 @@ const createFilterAndSort = (filterInput, sortInput) => {
     if (filterInput) {
     algoliaFilter = filterInput.filter((filter) => algoliaFilterFields.indexOf(filter.field) !== -1)
         .reduce((algoliaFilter, filter) => algoliaFilter + "("+filter.values
-            .reduce((filterString, filterValue) => filterString + filter.field+filter.comparison + "\""+filterValue+"\"" +" OR ", "").slice(0,-4)+") AND ","").slice(0,-4)
+            .reduce((filterString, filterValue) => filterString + filter.field+filter.comparison + filterValue +" OR ", "").slice(0,-4)+") AND ","").slice(0,-4)
          
     //create Mongo Filter
     //mongoFilter = [{price:{$gt: 500}}, {price:{$gt: 1970}},{supplier:{$in:["woolco, sysco"]}}]
