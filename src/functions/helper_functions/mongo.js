@@ -135,12 +135,26 @@ exports.accountMetadata = async(action, payload) => {
       let accountMetadata = client.db(process.env.MONGO_DB).collection(payload.accountId+'-metadata');
 
       switch (action) {            
-          case 'markRecentlyOrdered' :
-            const cartSkus = payload.cart.map(item => item.sku)
-            console.log(cartSkus)
-            const date = new Date()
-            const response = await accountMetadata.updateMany({sku: {"$in": cartSkus}}, {'$set':{lastOrderDate:date.getTime()}})                           
-            return (response.result.n >= payload.cart.length) ? {success: 'success'} : {error: {stack: response}}
+        case 'markRecentlyOrdered' :            
+        const date = new Date()
+        console.log('PAYLOAD')
+        console.log(payload)
+        const updateParam = payload.cart.map(item => {
+          console.log('MAP ITEM'  );
+          console.log(item);
+          delete item['quantity']          
+          delete item['objectID']  
+          delete item['_id']                 
+          return {"updateOne" : 
+                        {"filter": {"sku": {'$eq': item.sku}},
+                        "update": {'$set':{...item, lastOrderDate:date.getTime()}},
+                        "upsert": true}
+                    }
+                  })                     
+        const response = await accountMetadata.bulkWrite(updateParam)
+        console.log('MONGO WRITESPONSE')
+        console.log(response);
+        return (response.result.n >= payload.cart.length) ? {success: 'success'} : {error: {stack: response}}
       }
       } catch (error) {              
               if (!Sentry.error) {

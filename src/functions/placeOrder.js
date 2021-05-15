@@ -2,6 +2,7 @@ const mongo = require ('./helper_functions/mongo.js')
 const createOrderEmail = require ('./helper_functions/createOrderEmail.js')
 const sendgrid = require ('./helper_functions/sendgrid.js')
 const sentry = require('./helper_functions/sentry')
+const algoliasearch = require('algoliasearch');
 
 const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -13,11 +14,11 @@ exports.handler = async(events, context) => {
 
     const Sentry = await sentry.initSentry()
     
-    let orderSent = false;        
+    let orderSent = false;           
 
     try {
        
-    console.log(decodeURI(events.queryStringParameters.supplierOrder.replace(/HTAG/g,"#")))
+    // console.log(decodeURI(events.queryStringParameters.supplierOrder.replace(/HTAG/g,"#")))
     
     const supplierOrder = JSON.parse(decodeURI(events.queryStringParameters.supplierOrder.replace(/HTAG/g,"#")))        
 
@@ -53,8 +54,8 @@ exports.handler = async(events, context) => {
             return {statusCode: 500, headers,body: JSON.stringify({orderId: supplierOrder.id, orderSent: false, error: 'Order Email Creation Error - '+orderEmail.error.stack}) }
         }
 
-        console.log("Order Email")
-        console.log(orderEmail)        
+        // console.log("Order Email")
+        // console.log(orderEmail)        
 
          //SEND EMAIL VIA SENDGRID & HANDLE ERROR IF NOT 202 RESPONSE
          const sgQueueConfirm = await sendgrid.sendEmail(orderEmail)        
@@ -66,16 +67,10 @@ exports.handler = async(events, context) => {
             return {statusCode: 500, headers, body: JSON.stringify({orderId: supplierOrder.id, orderSent: false, error: 'Order Email Queuing Error - '+sgQueueConfirm.error.stack} )}         
         }
         
-        console.log("Send Grid Response")
-        console.log(sgQueueConfirm)
+        // console.log("Send Grid Response")
+        // console.log(sgQueueConfirm)
 
         orderSent= true;
-
-        //update last date delivered in metadata
-        mongo.accountMetadata('markRecentlyOrdered', supplierOrder)
-
-        //add skus to order guide
-        mongo.accounts('updateOrderGuide', {query: {id: supplierOrder.accountId}, skuList: supplierOrder.cart.map(item => item.sku)})
         
         //SAVE ORDER TO DATABASE - STATUS = "QUEUED"
         supplierOrder.status = 'Queued';
@@ -87,7 +82,27 @@ exports.handler = async(events, context) => {
             return {statusCode: 200, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSent: true, error: 'Save Queued Order Error - '+saveOrderRes.error.stack})}
         }
         
+        //update last date delivered in metadata
+        mongo.accountMetadata('markRecentlyOrdered', supplierOrder)
 
+        //add skus to order guide
+        mongo.accounts('updateOrderGuide', {query: {id: supplierOrder.accountId}, skuList: supplierOrder.cart.map(item => item.sku)})
+
+
+        //UPDATE ALGOLIA INDEX TO SHOW LIVE
+        console.log('TRYING ALGOLIA');
+        const algolia_client = algoliasearch(process.env.ALGOLIA_APP_NAME, process.env.ALGOLIA_API_KEY);
+        const index = algolia_client.initIndex(process.env.ALGOLIA_PRODUCTS_INDEX);
+
+        const updateObjects = supplierOrder.cart.map(item => {
+            let updateObject = {objectID: item.sku}
+            updateObject[supplierOrder.accountId+'-orderGuide'] = 'yes'
+            return updateObject
+        })            
+        console.log(updateObjects)        
+        index.partialUpdateObjects(updateObjects).then(val => console.log(val)).catch(err => console.log(err))
+
+        console.log('FINISHED ALGOLIA');
         // //CHANGE ORDER STATUS TO QUEUED
         // const orderUpdateRes = await mongo.orders('updateOrder', {filter: {id:supplierOrder.id}, update: {status: 'Queued'}, close:true})
         // if (orderUpdateRes.error) {
@@ -105,6 +120,7 @@ exports.handler = async(events, context) => {
 
     }
     catch(error) {
+        console.log(error)
         let statusCode = 500;
         if (orderSent) {
             statusCode = 200

@@ -109,7 +109,7 @@ const createFilterAndSort = (filterInput, sortInput) => {
     //(supplierId:aceendico OR supplierId:woolco) AND (units:Gallon) AND (size>2)
 
     if (filterInput) {
-    algoliaFilter = filterInput.filter((filter) => algoliaFilterFields.indexOf(filter.field) !== -1)
+    algoliaFilter = filterInput.filter((filter) => algoliaFilterFields.indexOf(filter.field) !== -1 || filter.field.includes('orderGuide')) //ADD orderguide here to handle algolia specific entries
         .reduce((algoliaFilter, filter) => algoliaFilter + "("+filter.values
             .reduce((filterString, filterValue) => filterString + filter.field+filter.comparison + filterValue +" OR ", "").slice(0,-4)+") AND ","").slice(0,-4)
          
