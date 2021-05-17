@@ -3,6 +3,7 @@ const createOrderEmail = require ('./helper_functions/createOrderEmail.js')
 const sendgrid = require ('./helper_functions/sendgrid.js')
 const sentry = require('./helper_functions/sentry')
 const algoliasearch = require('algoliasearch');
+const axios = require('axios')
 
 const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -10,17 +11,22 @@ const headers = {
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE'
   };
 
-exports.handler = async(events, context) => {
+exports.handler = async(event, context) => {
 
     const Sentry = await sentry.initSentry()
     
     let orderSent = false;           
-
+ 
+            
     try {
-       
-    // console.log(decodeURI(events.queryStringParameters.supplierOrder.replace(/HTAG/g,"#")))
-    
-    const supplierOrder = JSON.parse(decodeURI(events.queryStringParameters.supplierOrder.replace(/HTAG/g,"#")))        
+
+        const accountId = event.queryStringParameters.accountId
+        const supplierId = event.queryStringParameters.supplierId
+        console.log(accountId +'++'+supplierId);
+
+        const masterCart = await axios.get('https://supplyhero-1605397286974-default-rtdb.firebaseio.com/customers/'+accountId+'/state/cartState/masterCart.json')
+        const supplierOrder = masterCart.data.filter(cart => cart.supplierId === supplierId)[0]
+        console.log(supplierOrder);           
 
     try {        
         
@@ -90,7 +96,7 @@ exports.handler = async(events, context) => {
 
 
         //UPDATE ALGOLIA INDEX TO SHOW LIVE
-        console.log('TRYING ALGOLIA');
+        // console.log('TRYING ALGOLIA');
         const algolia_client = algoliasearch(process.env.ALGOLIA_APP_NAME, process.env.ALGOLIA_API_KEY);
         const index = algolia_client.initIndex(process.env.ALGOLIA_PRODUCTS_INDEX);
 
@@ -102,7 +108,7 @@ exports.handler = async(events, context) => {
         console.log(updateObjects)        
         index.partialUpdateObjects(updateObjects).then(val => console.log(val)).catch(err => console.log(err))
 
-        console.log('FINISHED ALGOLIA');
+        // console.log('FINISHED ALGOLIA');
         // //CHANGE ORDER STATUS TO QUEUED
         // const orderUpdateRes = await mongo.orders('updateOrder', {filter: {id:supplierOrder.id}, update: {status: 'Queued'}, close:true})
         // if (orderUpdateRes.error) {
@@ -134,14 +140,15 @@ exports.handler = async(events, context) => {
 }
 catch (error) {
     if (!Sentry.error) {
-        Sentry.captureException('Place Order Error - Read Order - '+error)
+        Sentry.captureException('Place Order Error - Pull Order From Firebase - '+error)
     }  
-    return {statusCode: 500, headers, body: JSON.stringify({orderSent: false, error: 'Place Order Read Order Error - '+error.stack} )}
+    return {statusCode: 500, headers, body: JSON.stringify({orderSent: false, error: 'Place Order Error - Pull Order From Firebase - '+error.stack} )}
 }
 
 
 
 }
+
 
 
 

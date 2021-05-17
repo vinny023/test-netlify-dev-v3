@@ -137,11 +137,11 @@ exports.accountMetadata = async(action, payload) => {
       switch (action) {            
         case 'markRecentlyOrdered' :            
         const date = new Date()
-        console.log('PAYLOAD')
-        console.log(payload)
+        // console.log('PAYLOAD')
+        // console.log(payload)
         const updateParam = payload.cart.map(item => {
-          console.log('MAP ITEM'  );
-          console.log(item);
+          // console.log('MAP ITEM'  );
+          // console.log(item);
           delete item['quantity']          
           delete item['objectID']  
           delete item['_id']                 
@@ -152,8 +152,8 @@ exports.accountMetadata = async(action, payload) => {
                     }
                   })                     
         const response = await accountMetadata.bulkWrite(updateParam)
-        console.log('MONGO WRITESPONSE')
-        console.log(response);
+        // console.log('MONGO WRITESPONSE')
+        // console.log(response);
         return (response.result.n >= payload.cart.length) ? {success: 'success'} : {error: {stack: response}}
       }
       } catch (error) {              
