@@ -1,1 +1,17 @@
-console.log(JSON.parse(`{"accountId":"arvindsdeli","accountDisplayName":"Arvind's Deli","accountConfirmationEmail":"aanandacoumar@gmail.com","deliveryLocation":{"streetAddress":"2077 Limestone Road","city":"New York","state":"NY","zipCode":"10013"},"supplierContact":{"contact":"trufflefoodmarket@gmail.com"},"cart":[{"__skuList":0,"_highlightResult":{"displayName":{"matchLevel":"none","value":"Fz Potato Chunky Diced Hashbrown"},"qtyPerItem":{"matchLevel":"none","value":"6"},"size":{"matchLevel":"none","value":"5"},"sku":{"fullyHighlighted":true,"matchLevel":"full","matchedWords":["woolco","781120"],"value":"<em>woolco-781120</em>"},"supplierId":{"matchLevel":"none","value":"woolco"},"supplierItemId":{"matchLevel":"none","value":"781120"},"units":{"matchLevel":"none","value":"#"}},"_id":"609498b8575406efa2709eb1","displayName":"Fz Potato Chunky Diced Hashbrown","objectID":"1724098002","price":29.4,"qtyPerItem":6,"qtyString":"6/5#","quantity":3,"size":5,"sku":"woolco-781120","supplierDisplayName":"Woolco","supplierId":"woolco","supplierItemId":781120,"totalQty":30,"unitCost":0.98,"units":"#"}],"supplierId":"woolco","supplierDetail":{"_id":"60538fa5b3e89357e4bdfab6","displayName":"WoolCo","id":"woolco","logo":"https://woolcofoods.net/wp-content/uploads/2019/05/cropped-logofavicon-192x192.png","image":"","shippingDays":1,"shippingCutoff":15,"orderMinimum":150,"deliveryFee":25,"shippingDoW":[1,2,3,4,5,6],"shippingTimeSlots":["12 AM - 5 AM","5 AM - 10 AM","10 AM - 3 PM","3 PM - 8 PM"],"__originalOrder":0},"orderTotal":125,"deliveryFee":25,"selectedDeliveryDate":{"day":"Thursday","date":"4/19"},"selectedDeliveryTimeSlot":"5 AM - 10 AM","placingOrder":true}`))
+const axios = require('axios')
+
+const supplierId = 'usfoods'
+const accountId = 'arvindsdeli'
+
+const getOrder = async() => {
+
+    try {
+        const masterCart = await axios.get('https://supplyhero-1605397286974-default-rtdb.firebaseio.com/customers/'+accountId+'/state/cartState/masterCart.json')
+        const supplierOrder = masterCart.data.filter(cart => cart.supplierId === supplierId)[0]
+        return supplierOrder
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+getOrder().then(val => console.log(val))

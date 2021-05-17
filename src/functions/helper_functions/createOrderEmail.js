@@ -8,7 +8,7 @@ exports.createOrderEmailParams = ({ accountDisplayName,
                                     id,
                                     deliveryLocation,
                                     selectedDeliveryDate,
-                                    selectedTimeSlot,
+                                    selectedDeliveryTimeSlot,
                                     specialNotes
                                     }) => {
 
@@ -27,21 +27,22 @@ exports.createOrderEmailParams = ({ accountDisplayName,
             
             //CREATE ORDER STRING
             var orderstring = `<h3>Order From `+accountDisplayName+`</h3>
-            <table style="border-collapse: collapse; width: 100%;">
-           
-            <h4>Location: </h4>
+            <h4>Deliver To (Location): </h4>
             <p>`+streetAddress+` </p>
             <p>`+city+`, `+state+ ` `+zipCode+`</p>
             <br>
-            <h4>Deliver At: $</h4>
+            <h4>Deliver On: </h4>
             <p>`+selectedDeliveryDate.day + `- `+
                  selectedDeliveryDate.date+`<//p>
-            <p>`+selectedTimeSlot+`</p>
+            <p>`+selectedDeliveryTimeSlot+`</p>
             <br>
             <p>`+specialNotes+`</p>
             <br>
-            <a href="`+confirmLink+`">Click here to confirm order</a>
-            <tr>
+            <a href="`+confirmLink+`">CLICK HERE TO CONFIRM ORDER</a>
+            <br>
+            <table style="border-collapse: collapse; width: 100%;">         
+            <tr>           
+            
             <th style=" text-align: left; padding: 8px;">Item Number</th>
             <th style=" text-align: left; padding: 8px;">Quantity</th>
             <th style=" text-align: left; padding: 8px;">Size</th>
