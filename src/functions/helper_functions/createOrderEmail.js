@@ -65,7 +65,7 @@ exports.createOrderEmailParams = ({ accountDisplayName,
                 <td style=" text-align: left; padding: 8px;">`+cart[m].upc+`</td>
                 <td style=" text-align: left; padding: 8px;">`+cart[m].supplierItemId+`</td>
                 <td style=" text-align: left; padding: 8px;">`+cart[m].quantity+`</td>
-                <td style=" text-align: left; padding: 8px;">`+cart[m].qtyPerItem+`x `+cart[m].units+`</td>
+                <td style=" text-align: left; padding: 8px;">`+cart[m].qtyPerItem+` x `+cart[m].size+' '+cart[m].units+`</td>
                 <td style=" text-align: left; padding: 8px;">`+cart[m].brand+` - `+cart[m].displayName+`</td>
                    </tr>
             `
