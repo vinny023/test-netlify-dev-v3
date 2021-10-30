@@ -40,14 +40,16 @@ exports.createOrderEmailParams = ({ accountDisplayName,
             <br>
             <a href="`+confirmLink+`">CLICK HERE TO CONFIRM ORDER</a>
             <br>
+            <br>
             <table style="border-collapse: collapse; width: 100%;">         
             <tr>           
             
-            <th style=" text-align: left; padding: 8px;">Item Number</th>
-            <th style=" text-align: left; padding: 8px;">Quantity</th>
+            <th style=" text-align: left; padding: 8px;">Item #</th>
+            <th style=" text-align: left; padding: 8px;">Qty</th>
             <th style=" text-align: left; padding: 8px;">Size</th>
             <th style=" text-align: left; padding: 8px;">Description</th>
             <th style=" text-align: left; padding: 8px;">Price</th>
+            
             </tr>`
 
         for (var m = 0; m < cart.length; m++) {
@@ -65,8 +67,8 @@ exports.createOrderEmailParams = ({ accountDisplayName,
                 <td style=" text-align: left; padding: 8px;">`+cart[m].supplierItemId+`</td>
                 <td style=" text-align: left; padding: 8px;">`+cart[m].quantity+`</td>
                 <td style=" text-align: left; padding: 8px;">`+cart[m].qtyPerItem+`x `+cart[m].size+` `+cart[m].units+`</td>
-                <td style=" text-align: left; padding: 8px;">`+cart[m].displayName+`</td>
-                <td style=" text-align: left; padding: 8px;">$`+cart[m].price+`</td>
+                <td style=" text-align: left; padding: 8px;">`+cart[m].displayName+`</td>  
+                <td style=" text-align: left; padding: 8px;">$`+cart[m].price+`</td>                
                 </tr>
             `
         }

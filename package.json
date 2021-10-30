@@ -18,6 +18,7 @@
     "@sentry/node": "^6.3.1",
     "algoliasearch": "^4.8.6",
     "axios": "^0.21.1",
+    "compress-json": "^1.0.5",
     "dotenv": "^8.2.0",
     "mongodb": "^3.6.5",
     "netlify-lambda": "^2.0.3",
