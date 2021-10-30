@@ -4,6 +4,7 @@ const sendgrid = require ('./helper_functions/sendgrid.js')
 const sentry = require('./helper_functions/sentry')
 const algoliasearch = require('algoliasearch');
 const axios = require('axios')
+const jsonCompress = require('compress-json')
 
 const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -24,8 +25,13 @@ exports.handler = async(event, context) => {
         const supplierId = event.queryStringParameters.supplierId
         console.log(accountId +'++'+supplierId);
 
-        const masterCart = await axios.get('https://supplyhero-1605397286974-default-rtdb.firebaseio.com/customers/'+accountId+'/state/cartState/masterCart.json')
-        const supplierOrder = masterCart.data.filter(cart => cart.supplierId === supplierId)[0]
+        const compressedStateString = await axios.get('https://supplyhero-1605397286974-default-rtdb.firebaseio.com/customers/'+accountId+'.json')
+        console.log(compressedStateString.data.state);
+        const masterCart = jsonCompress.decompress(JSON.parse(compressedStateString.data.state)).cartState.masterCart
+        console.log(masterCart);
+
+        // const masterCart = await axios.get('https://supplyhero-1605397286974-default-rtdb.firebaseio.com/customers/'+accountId+'/state/cartState/masterCart.json')
+        const supplierOrder = masterCart.filter(cart => cart.supplierId === supplierId)[0]
         console.log(supplierOrder);           
 
     try {        
@@ -55,20 +61,22 @@ exports.handler = async(event, context) => {
         const orderEmail = createOrderEmail.createOrderEmailParams(supplierOrder)
         if(orderEmail.error) {
             if (!Sentry.error) {
-                Sentry.captureException('Place Order Error - Create Order Email Issue - '+error)
+                Sentry.captureException('Place Order Error - Create Order Email Issue - '+orderEmail.error)
             }  
             return {statusCode: 500, headers,body: JSON.stringify({orderId: supplierOrder.id, orderSent: false, error: 'Order Email Creation Error - '+orderEmail.error.stack}) }
         }
 
-        // console.log("Order Email")
-        // console.log(orderEmail)        
+        console.log("Order Email")
+        console.log(orderEmail)        
 
          //SEND EMAIL VIA SENDGRID & HANDLE ERROR IF NOT 202 RESPONSE
          const sgQueueConfirm = await sendgrid.sendEmail(orderEmail)        
         
          if (sgQueueConfirm.error) {  
+            console.log('SG QUEUE CONFIRM')
+            console.log(sgQueueConfirm);
             if (!Sentry.error) {
-                Sentry.captureException('Place Order Error - SG Send Email Issue - '+error)
+                Sentry.captureException('Place Order Error - SG Send Email Issue - '+sgQueueConfirm.error)
             }            
             return {statusCode: 500, headers, body: JSON.stringify({orderId: supplierOrder.id, orderSent: false, error: 'Order Email Queuing Error - '+sgQueueConfirm.error.stack} )}         
         }
@@ -83,7 +91,7 @@ exports.handler = async(event, context) => {
         const saveOrderRes = await mongo.orders('saveNewOrder', {order: supplierOrder})
         if (saveOrderRes.error) {
             if (!Sentry.error) {
-                Sentry.captureException('Place Order Error - Saving Unqued Issue - '+error)
+                Sentry.captureException('Place Order Error - Saving Unqued Issue - '+saveOrderRes.error)
             }  
             return {statusCode: 200, headers, body: JSON.stringify({orderId: supplierOrder.id,orderSent: true, error: 'Save Queued Order Error - '+saveOrderRes.error.stack})}
         }
