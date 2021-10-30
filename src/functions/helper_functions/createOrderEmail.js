@@ -4,7 +4,7 @@ exports.createOrderEmailParams = ({ accountDisplayName,
                                     cart,
                                     supplierContact, 
                                     accountConfirmationEmail,
-                                    supplierDetail,
+                                    displayName,
                                     id,
                                     deliveryLocation,
                                     selectedDeliveryDate,
@@ -79,7 +79,7 @@ exports.createOrderEmailParams = ({ accountDisplayName,
 
         return {
                     html: orderstring, 
-                    subject: 'Order From '+accountDisplayName+' to '+supplierDetail.displayName,
+                    subject: 'Order From '+accountDisplayName+' to '+displayName,
                     from: process.env.ORDER_EMAIL_SENDER,
                     to: [supplierContact.contact, accountConfirmationEmail],
                     custom_args:{orderId:id}
