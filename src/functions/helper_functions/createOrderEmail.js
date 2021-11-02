@@ -4,7 +4,7 @@ exports.createOrderEmailParams = ({ accountDisplayName,
                                     cart,
                                     supplierContact, 
                                     accountConfirmationEmail,
-                                    supplierDetail,
+                                    displayName,
                                     id,
                                     deliveryLocation,
                                     selectedDeliveryDate,
@@ -44,12 +44,12 @@ exports.createOrderEmailParams = ({ accountDisplayName,
             <table style="border-collapse: collapse; width: 100%;">         
             <tr>           
             
+
             <th style=" text-align: left; padding: 8px;">Item #</th>
             <th style=" text-align: left; padding: 8px;">Qty</th>
             <th style=" text-align: left; padding: 8px;">Size</th>
             <th style=" text-align: left; padding: 8px;">Description</th>
             <th style=" text-align: left; padding: 8px;">Price</th>
-            
             </tr>`
 
         for (var m = 0; m < cart.length; m++) {
@@ -64,8 +64,10 @@ exports.createOrderEmailParams = ({ accountDisplayName,
         
             orderstring += `
             <tr `+shade+`>
+                <td style=" text-align: left; padding: 8px;">`+cart[m].upc+`</td>
                 <td style=" text-align: left; padding: 8px;">`+cart[m].supplierItemId+`</td>
                 <td style=" text-align: left; padding: 8px;">`+cart[m].quantity+`</td>
+
                 <td style=" text-align: left; padding: 8px;">`+cart[m].qtyPerItem+`x `+cart[m].size+` `+cart[m].units+`</td>
                 <td style=" text-align: left; padding: 8px;">`+cart[m].displayName+`</td>  
                 <td style=" text-align: left; padding: 8px;">$`+cart[m].price+`</td>                
@@ -77,7 +79,7 @@ exports.createOrderEmailParams = ({ accountDisplayName,
 
         return {
                     html: orderstring, 
-                    subject: 'Order From '+accountDisplayName+' to '+supplierDetail.displayName,
+                    subject: 'Order From '+accountDisplayName+' to '+displayName,
                     from: process.env.ORDER_EMAIL_SENDER,
                     to: [supplierContact.contact, accountConfirmationEmail],
                     custom_args:{orderId:id}
