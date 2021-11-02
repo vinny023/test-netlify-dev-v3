@@ -45,9 +45,9 @@ exports.createOrderEmailParams = ({ accountDisplayName,
             <tr>           
             
 
-            <th style=" text-align: left; padding: 8px;">Item #</th>
+            <th style=" text-align: left; padding: 8px;">PLU #</th>
+            <th style=" text-align: left; padding: 8px;">Item Code</th>
             <th style=" text-align: left; padding: 8px;">Qty</th>
-            <th style=" text-align: left; padding: 8px;">Size</th>
             <th style=" text-align: left; padding: 8px;">Description</th>
             <th style=" text-align: left; padding: 8px;">Price</th>
             </tr>`
