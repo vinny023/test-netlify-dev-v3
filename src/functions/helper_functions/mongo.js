@@ -93,7 +93,9 @@ exports.orders = async(action,payload) => {
               return (response.result.n === 1) ? response : {error: {stack: response}}
               
             case 'getOrder':              
+
               return await orders.find(payload.query).sort(payload.sort).limit(50).toArray()  
+
             case 'saveNewOrder':
                 const insertRes = await orders.insertOne(payload.order)
                 // if (payload.close) { client.close() }
