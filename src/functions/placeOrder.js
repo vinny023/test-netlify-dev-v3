@@ -83,12 +83,22 @@ exports.handler = async(event, context) => {
         
         // console.log("Send Grid Response")
         // console.log(sgQueueConfirm)
-
         orderSent= true;
         
         //SAVE ORDER TO DATABASE - STATUS = "QUEUED"
+
+        console.log('----------ORDER BEFORE SAVING----------');
+        
+
         supplierOrder.status = 'Queued';
+        delete supplierOrder['_id'];
+
+        console.log(supplierOrder);
         const saveOrderRes = await mongo.orders('saveNewOrder', {order: supplierOrder})
+
+        console.log('----------SAVE RES----------');
+                console.log(saveOrderRes);
+
         if (saveOrderRes.error) {
             if (!Sentry.error) {
                 Sentry.captureException('Place Order Error - Saving Unqued Issue - '+saveOrderRes.error)
