@@ -94,10 +94,14 @@ exports.orders = async(action,payload) => {
               
             case 'getOrder':              
 
-              return await orders.find(payload.query).sort(payload.sort).limit(50).toArray()  
+              return await orders.find(payload.query).sort(payload.sort).limit(50).toArray() 
+              
+           
 
             case 'saveNewOrder':
                 const insertRes = await orders.insertOne(payload.order)
+                console.log('----------INSERT RES----------');
+                console.log(insertRes);
                 // if (payload.close) { client.close() }
                 return ((insertRes.insertedCount === 1) ? {success:'success'} : {error: {stack: insertRes}})
      
